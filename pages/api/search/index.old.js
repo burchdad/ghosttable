@@ -1,0 +1,22 @@
+import { supabase } from '../../../lib/supabase'
+
+import { withSentry } from '@sentry/nextjs'
+
+async function handler(req, res) {
+  if (req.method === 'GET') {
+    const { query } = req;
+    // ... your search logic here ...
+    return res.status(200).json({ message: 'Search GET endpoint' });
+  }
+
+  if (req.method === 'POST') {
+    const { body } = req;
+    // ... your search logic here ...
+    return res.status(201).json({ message: 'Search POST endpoint' });
+  }
+
+  res.setHeader('Allow', ['GET', 'POST']);
+  res.status(405).end(`Method ${req.method} Not Allowed`);
+}
+
+export default withSentry(handler);

@@ -1,0 +1,26 @@
+// API endpoint for audit log search/filtering (demo)
+let auditLogs = [];
+
+export default function handler(req, res) {
+  try {
+    if (req.method === 'POST') {
+      const { action, userId, details } = req.body;
+      if (!action || !userId || !details) {
+        return res.status(400).json({ error: 'Missing fields', code: 400 });
+      }
+      auditLogs.push({ action, userId, details, ts: Date.now() });
+      return res.status(200).json({ success: true });
+    }
+    if (req.method === 'GET') {
+      const { userId, action } = req.query;
+      let filtered = auditLogs;
+      if (userId) filtered = filtered.filter(l => l.userId === userId);
+      if (action) filtered = filtered.filter(l => l.action === action);
+      return res.status(200).json(filtered);
+    }
+    return res.status(405).json({ error: 'Method Not Allowed', code: 405 });
+  } catch (err) {
+    console.error('Audit Search API Error:', err);
+    return res.status(500).json({ error: 'Internal Server Error', code: 500 });
+  }
+}

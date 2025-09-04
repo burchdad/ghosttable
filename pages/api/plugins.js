@@ -1,0 +1,20 @@
+import { withSentry } from '@sentry/nextjs'
+// API endpoint for plugin registration and execution (demo)
+let plugins = [];
+
+function handler(req, res) {
+  if (req.method === 'POST') {
+    const { name, code } = req.body;
+    if (!name || !code) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    plugins.push({ name, code });
+    return res.status(200).json({ success: true });
+  }
+  if (req.method === 'GET') {
+    return res.status(200).json(plugins);
+  }
+  res.status(405).end();
+}
+
+export default withSentry(handler);

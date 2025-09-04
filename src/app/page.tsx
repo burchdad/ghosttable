@@ -1,103 +1,144 @@
-import Image from "next/image";
+'use client'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+type Base = { id: string; name: string; organization_id: string }
+type Org = { id: string; name: string }
+
+
+export default function HomePage() {
+const [bases, setBases] = useState<Base[]>([])
+const [orgs, setOrgs] = useState<Org[]>([])
+const [name, setName] = useState('')
+const [orgId, setOrgId] = useState('')
+const [open, setOpen] = useState(false)
+const menuRef = useRef<HTMLDivElement | null>(null)
+const router = useRouter()
+
+
+useEffect(() => {
+fetch('/api/bases').then(r => r.json()).then(setBases)
+fetch('/api/organizations').then(r => r.json()).then(setOrgs)
+}, [])
+
+
+useEffect(() => {
+function onDocClick(e: MouseEvent) {
+if (!menuRef.current) return
+if (!menuRef.current.contains(e.target as Node)) setOpen(false)
 }
+document.addEventListener('click', onDocClick)
+return () => document.removeEventListener('click', onDocClick)
+}, [])
+
+
+async function handleCreateBase(e?: React.FormEvent) {
+e?.preventDefault()
+if (!name || !orgId) return
+const res = await fetch('/api/bases', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ name, organization_id: orgId })
+})
+if (!res.ok) {
+const err = await res.json().catch(() => ({}))
+alert(`Create failed${err?.error ? `: ${err.error}` : ''}`)
+return
+}
+const created: Base = await res.json()
+setBases(prev => [...prev, created])
+setName('')
+setOrgId('')
+}
+
+
+async function quickCreateOrg() {
+const label = `Org ${new Date().toLocaleString()}`
+const res = await fetch('/api/organizations', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ name: label })
+})
+const created: Org = await res.json()
+setOrgs(prev => [...prev, created])
+setOrgId(created.id)
+setOpen(false)
+}
+
+const pickedOrgName = useMemo(() => orgs.find(o => o.id === orgId)?.name ?? '', [orgs, orgId])
+
+
+return (
+<main className="max-w-4xl mx-auto py-10 px-4 space-y-8">
+<section>
+<h1 className="text-3xl font-bold mb-6">Bases</h1>
+<form onSubmit={handleCreateBase} className="mb-4 grid grid-cols-1 gap-3">
+<input
+className="border p-2 rounded"
+placeholder="Base name"
+value={name}
+onChange={e => setName(e.target.value)}
+/>
+
+
+<div className="relative flex items-center gap-2">
+<input
+className="border p-2 rounded flex-1"
+placeholder="Organization ID"
+value={orgId}
+onChange={e => setOrgId(e.target.value)}
+/>
+{/* 3-dot org picker */}
+<div ref={menuRef} className="relative">
+<button type="button" aria-label="Pick organization" onClick={() => setOpen(v => !v)} className="border rounded px-2 py-1">
+⋯
+</button>
+{open && (
+<div className="absolute right-0 top-full mt-2 w-80 max-h-72 overflow-auto rounded border bg-white shadow z-10">
+<div className="p-2 border-b text-sm flex items-center justify-between">
+<span className="font-medium">Organizations</span>
+<button type="button" className="text-xs underline" onClick={quickCreateOrg}>Quick-create</button>
+</div>
+<ul className="divide-y">
+{orgs.length === 0 && (
+<li className="p-3 text-sm text-gray-500">No organizations yet.</li>
+)}
+{orgs.map(o => (
+<li key={o.id} className="p-3 hover:bg-gray-50 cursor-pointer" onClick={() => { setOrgId(o.id); setOpen(false) }}>
+<div className="text-sm font-medium">{o.name}</div>
+<div className="text-xs text-gray-500">{o.id}</div>
+</li>
+))}
+</ul>
+</div>
+)}
+</div>
+</div>
+
+
+<div className="text-xs text-gray-600">
+{pickedOrgName && (
+<span>Selected org: <span className="font-medium">{pickedOrgName}</span></span>
+)}
+</div>
+
+
+<button type="submit" className="bg-black text-white px-4 py-2 rounded w-fit">Create Base</button>
+</form>
+
+
+<ul className="space-y-3">
+{bases.map(b => (
+<li key={b.id} className="border rounded p-4 hover:bg-gray-50 cursor-pointer" onClick={() => router.push(`/${b.id}/tables`)}>
+<div className="font-semibold">{b.name}</div>
+<div className="text-sm text-gray-500">Org: {b.organization_id}</div>
+</li>
+))}
+{bases.length === 0 && <li className="text-sm text-gray-500">No bases yet.</li>}
+</ul>
+</section>
+</main>
+)
+}
+  

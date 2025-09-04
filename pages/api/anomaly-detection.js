@@ -1,0 +1,31 @@
+import Sentry from '../../lib/sentry';
+
+import { withSentry } from '@sentry/nextjs'
+
+// API endpoint for anomaly detection (demo)
+let anomalies = [];
+
+function handler(req, res) {
+  try {
+    if (req.method === 'POST') {
+      const { tableId, data } = req.body;
+      if (!tableId || !data) {
+        return res.status(400).json({ error: 'Missing fields', code: 400 });
+      }
+      // Simulate anomaly detection
+      const anomaly = { detected: Math.random() > 0.5, data, ts: Date.now() };
+      anomalies.push(anomaly);
+      return res.status(200).json(anomaly);
+    }
+    if (req.method === 'GET') {
+      return res.status(200).json(anomalies);
+    }
+    return res.status(405).json({ error: 'Method Not Allowed', code: 405 });
+  } catch (err) {
+    console.error('Anomaly Detection API Error:', err);
+    Sentry.captureException(err); // Capture the error with Sentry
+    return res.status(500).json({ error: 'Internal Server Error', code: 500 });
+  }
+}
+
+export default withSentry(handler);

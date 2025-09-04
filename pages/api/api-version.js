@@ -1,0 +1,27 @@
+// API endpoint for API versioning (demo)
+import Sentry from '../../lib/sentry';
+import { withSentry } from '@sentry/nextjs'
+
+let versions = [{ version: 'v1', active: true }];
+
+function handler(req, res) {
+  try {
+    if (req.method === 'POST') {
+      const { version, active } = req.body;
+      if (!version) {
+        return res.status(400).json({ error: 'Missing version', code: 400 });
+      }
+      versions.push({ version, active: !!active });
+      return res.status(200).json({ success: true });
+    }
+    if (req.method === 'GET') {
+      return res.status(200).json(versions);
+    }
+    return res.status(405).json({ error: 'Method Not Allowed', code: 405 });
+  } catch (err) {
+    console.error('API Version API Error:', err);
+    return res.status(500).json({ error: 'Internal Server Error', code: 500 });
+  }
+}
+
+export default withSentry(handler);

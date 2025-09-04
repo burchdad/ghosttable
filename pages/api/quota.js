@@ -1,0 +1,18 @@
+import { withSentry } from '@sentry/nextjs'
+// API endpoint for usage quotas per user/org (demo)
+let quotas = [];
+
+function handler(req, res) {
+  if (req.method === 'POST') {
+    const { userId, orgId, quota } = req.body;
+    if (!userId && !orgId) return res.status(400).json({ error: 'Missing userId or orgId' });
+    quotas.push({ userId, orgId, quota, ts: Date.now() });
+    return res.status(200).json({ success: true });
+  }
+  if (req.method === 'GET') {
+    return res.status(200).json(quotas);
+  }
+  res.status(405).end();
+}
+
+export default withSentry(handler);

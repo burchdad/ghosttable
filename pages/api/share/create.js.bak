@@ -1,0 +1,18 @@
+import crypto from 'node:crypto'
+import { supabase } from '../../../lib/supabase'
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') { res.setHeader('Allow',['POST']); return res.status(405).end() }
+  const { table_id, view_id, allow_download=false, expires_at=null } = req.body || {}
+  if (!table_id) return res.status(400).json({ error: 'table_id required' })
+
+  const token = crypto.randomBytes(16).toString('hex')
+  const { data, error } = await supabase
+    .from('share_links')
+    .insert([{ table_id, view_id: view_id || null, token, allow_download, expires_at }])
+    .select()
+  if (error) return res.status(500).json({ error: error.message })
+
+  // return the public URL
+  return res.status(201).json({ url: `/s/${token}`, token, share: data[0] })
+}

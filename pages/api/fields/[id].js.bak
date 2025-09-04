@@ -1,0 +1,37 @@
+import { supabase } from '../../../lib/supabase'
+
+export default async function handler(req, res) {
+  const { id } = req.query
+
+  if (req.method === 'PATCH') {
+    const { name, type, options } = req.body || {}
+    const updates = {}
+    if (name !== undefined) updates.name = name
+    if (type !== undefined) updates.type = type
+    if (options !== undefined) updates.options = options
+
+    const { data, error } = await supabase.from('fields').update(updates).eq('id', id).select()
+    if (error) return res.status(500).json({ error: error.message })
+    return res.status(200).json(data[0])
+  }
+
+  if (req.method === 'DELETE') {
+    // delete any record_values for this field
+    const { error: dvErr } = await supabase.from('record_values').delete().eq('field_id', id)
+    if (dvErr) return res.status(500).json({ error: dvErr.message })
+
+    // also remove attachments (storage + metadata) tied to this field
+    const { data: metas } = await supabase.from('record_attachments').select('path').eq('field_id', id)
+    if (Array.isArray(metas) && metas.length) {
+      await supabase.storage.from('attachments').remove(metas.map(m => m.path))
+      await supabase.from('record_attachments').delete().eq('field_id', id)
+    }
+
+    const { error } = await supabase.from('fields').delete().eq('id', id)
+    if (error) return res.status(500).json({ error: error.message })
+    return res.status(204).end()
+  }
+
+  res.setHeader('Allow', ['PATCH', 'DELETE'])
+  res.status(405).end(`Method ${req.method} Not Allowed`)
+}

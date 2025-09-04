@@ -1,0 +1,65 @@
+import { supabase } from '../../../lib/supabase'
+
+import { withSentry } from '@sentry/nextjs'
+
+async function handler(req, res) {
+  if (req.method !== 'POST') { res.setHeader('Allow', ['POST']); return res.status(405).end() }
+
+  const { record_id, field_id, file } = req.body || {}
+  // file = { name, size, type, base64 }
+  if (!record_id || !field_id || !file?.name || !file?.base64) {
+    return res.status(400).json({ error: 'record_id, field_id, file{name,size,type,base64} required' })
+  }
+
+  // Upload file to Supabase Storage bucket 'attachments'
+  const buffer = Buffer.from(file.base64, 'base64')
+  const storagePath = `${record_id}/${field_id}/${Date.now()}_${file.name}`
+  const { data: uploadData, error: uploadErr } = await supabase.storage
+    .from('attachments')
+    .upload(storagePath, buffer, { contentType: file.type })
+  if (uploadErr) return res.status(500).json({ error: uploadErr.message })
+
+  // Get public URL
+  const { data: publicUrlData } = supabase.storage
+    .from('attachments')
+    .getPublicUrl(storagePath)
+  const publicUrl = publicUrlData?.publicUrl
+
+  // 1) upsert record_values (append to array)
+  const { data: rv, error: getErr } = await supabase
+    .from('record_values')
+    .select('id, value')
+    .eq('record_id', record_id)
+    .eq('field_id', field_id)
+    .single()
+  if (getErr && getErr.code !== 'PGRST116') {
+    return res.status(500).json({ error: getErr.message })
+  }
+  let next = []
+  if (rv?.value && Array.isArray(rv.value)) next = rv.value
+  next = [...next, { name: file.name, size: file.size, type: file.type, url: publicUrl }]
+  if (!rv) {
+    const { error: insErr } = await supabase
+      .from('record_values')
+      .insert([{ record_id, field_id, value: next }])
+    if (insErr) return res.status(500).json({ error: insErr.message })
+  } else {
+    const { error: updErr } = await supabase
+      .from('record_values')
+      .update({ value: next })
+      .eq('id', rv.id)
+    if (updErr) return res.status(500).json({ error: updErr.message })
+  }
+
+  // 2) optional metadata row
+  await supabase
+    .from('record_attachments')
+    .insert([{
+      record_id, field_id,
+      path: storagePath, name: file.name, size: file.size, mime: file.type, url: publicUrl
+    }])
+
+  return res.status(200).json({ ok: true, url: publicUrl, name: file.name, size: file.size, type: file.type })
+}
+
+export default withSentry(handler);

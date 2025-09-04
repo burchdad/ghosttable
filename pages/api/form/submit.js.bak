@@ -1,0 +1,24 @@
+import { supabase } from '../../../lib/supabase'
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') { res.setHeader('Allow', ['POST']); return res.status(405).end() }
+  const { table_id, values } = req.body || {}
+  if (!table_id || !values || typeof values !== 'object') {
+    return res.status(400).json({ error: 'table_id and values{} required' })
+  }
+
+  // 1) create record
+  const { data: recs, error: rErr } = await supabase.from('records').insert([{ table_id }]).select()
+  if (rErr) return res.status(500).json({ error: rErr.message })
+  const record = recs[0]
+
+  // 2) write cells (insert or upsert)
+  for (const [field_id, raw] of Object.entries(values)) {
+    // convert booleans/numbers if needed? Keep verbatim; your grid handles types
+    const { error: vErr } = await supabase
+      .from('record_values')
+      .upsert([{ record_id: record.id, field_id, value: raw }], { onConflict: 'record_id,field_id' })
+    if (vErr) return res.status(500).json({ error: vErr.message })
+  }
+  return res.status(201).json(record)
+}

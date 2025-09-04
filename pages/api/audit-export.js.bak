@@ -1,0 +1,15 @@
+// API endpoint for audit trail export (demo)
+import { getLogs } from './audit-log';
+
+export default function handler(req, res) {
+  try {
+    if (req.method === 'GET') {
+      const logs = getLogs();
+      return res.status(200).json(logs);
+    }
+    return res.status(405).json({ error: 'Method Not Allowed', code: 405 });
+  } catch (err) {
+    console.error('Audit Export API Error:', err);
+    return res.status(500).json({ error: 'Internal Server Error', code: 500 });
+  }
+}

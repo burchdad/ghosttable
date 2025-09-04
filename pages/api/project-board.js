@@ -1,0 +1,18 @@
+import { withSentry } from '@sentry/nextjs'
+// API endpoint for project management boards (Kanban, Gantt) (demo)
+let boards = [];
+
+function handler(req, res) {
+  if (req.method === 'POST') {
+    const { boardId, type, config } = req.body;
+    if (!boardId || !type || !config) return res.status(400).json({ error: 'Missing fields' });
+    boards.push({ boardId, type, config, ts: Date.now() });
+    return res.status(200).json({ success: true });
+  }
+  if (req.method === 'GET') {
+    return res.status(200).json(boards);
+  }
+  res.status(405).end();
+}
+
+export default withSentry(handler);

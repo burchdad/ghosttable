@@ -1,0 +1,10 @@
+import Sentry from '../../lib/sentry';
+
+export default async function getUser(req, res) {
+  try {
+    // ...existing code...
+  } catch (error) {
+    Sentry.captureException(error);
+    res.status(500).send('Internal Server Error');
+  }
+}

@@ -1,0 +1,10 @@
+import { withSentry } from '@sentry/nextjs'
+// API endpoint to serve OpenAPI spec (demo)
+function handler(req, res) {
+  if (req.method === 'GET') {
+    return res.status(200).json({ openapi: '3.0.0', info: { title: 'Airtable Clone API', version: '1.0.0' }, paths: {} });
+  }
+  res.status(405).end();
+}
+
+export default withSentry(handler);

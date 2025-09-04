@@ -1,0 +1,29 @@
+// API endpoint for multi-cloud failover (demo)
+import { secrets } from '../../lib/secrets';
+import Sentry from '../../lib/sentry';
+import Sentry from '../../lib/sentry';
+import { withSentry } from '@sentry/nextjs'
+
+let failovers = [];
+
+function handler(req, res) {
+  try {
+    if (req.method === 'POST') {
+      const { region, status } = req.body;
+      if (!region || !status) {
+        return res.status(400).json({ error: 'Missing fields', code: 400 });
+      }
+      failovers.push({ region, status, ts: Date.now() });
+      return res.status(200).json({ success: true });
+    }
+    if (req.method === 'GET') {
+      return res.status(200).json(failovers);
+    }
+    return res.status(405).json({ error: 'Method Not Allowed', code: 405 });
+  } catch (err) {
+    console.error('Failover API Error:', err);
+    return res.status(500).json({ error: 'Internal Server Error', code: 500 });
+  }
+}
+
+export default withSentry(handler);

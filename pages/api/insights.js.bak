@@ -1,0 +1,24 @@
+// API endpoint for auto-generated insights/reports (demo)
+let insights = [];
+
+export default function handler(req, res) {
+  try {
+    if (req.method === 'POST') {
+      const { tableId, data } = req.body;
+      if (!tableId || !data) {
+        return res.status(400).json({ error: 'Missing fields', code: 400 });
+      }
+      // Simulate insight
+      const insight = { summary: `Insight for table ${tableId}`, data, ts: Date.now() };
+      insights.push(insight);
+      return res.status(200).json(insight);
+    }
+    if (req.method === 'GET') {
+      return res.status(200).json(insights);
+    }
+    return res.status(405).json({ error: 'Method Not Allowed', code: 405 });
+  } catch (err) {
+    console.error('Insights API Error:', err);
+    return res.status(500).json({ error: 'Internal Server Error', code: 500 });
+  }
+}

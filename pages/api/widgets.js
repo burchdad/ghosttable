@@ -1,0 +1,18 @@
+import { withSentry } from '@sentry/nextjs'
+// API endpoint for embeddable widgets (demo)
+let widgets = [];
+
+function handler(req, res) {
+  if (req.method === 'POST') {
+    const { name, config } = req.body;
+    if (!name || !config) return res.status(400).json({ error: 'Missing fields' });
+    widgets.push({ name, config, ts: Date.now() });
+    return res.status(200).json({ success: true });
+  }
+  if (req.method === 'GET') {
+    return res.status(200).json(widgets);
+  }
+  res.status(405).end();
+}
+
+export default withSentry(handler);

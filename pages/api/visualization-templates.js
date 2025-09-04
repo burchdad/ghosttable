@@ -1,0 +1,18 @@
+import { withSentry } from '@sentry/nextjs'
+// API endpoint for saving/loading visualization templates (demo)
+let templates = [];
+
+function handler(req, res) {
+  if (req.method === 'POST') {
+    const { userId, config } = req.body;
+    if (!userId || !config) return res.status(400).json({ error: 'Missing fields' });
+    templates.push({ userId, config, ts: Date.now() });
+    return res.status(200).json({ success: true });
+  }
+  if (req.method === 'GET') {
+    return res.status(200).json(templates);
+  }
+  res.status(405).end();
+}
+
+export default withSentry(handler);

@@ -1,0 +1,15 @@
+// API endpoint for automated workflow builder (drag-and-drop API) (demo)
+let workflows = [];
+
+export default function handler(req, res) {
+  if (req.method === 'POST') {
+    const { workflowId, config } = req.body;
+    if (!workflowId || !config) return res.status(400).json({ error: 'Missing fields' });
+    workflows.push({ workflowId, config, ts: Date.now() });
+    return res.status(200).json({ success: true });
+  }
+  if (req.method === 'GET') {
+    return res.status(200).json(workflows);
+  }
+  res.status(405).end();
+}
