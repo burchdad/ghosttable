@@ -9,14 +9,18 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@sendgrid/mail": "^8.1.5",
     "@sentry/nextjs": "^10.8.0",
     "@supabase/supabase-js": "^2.56.0",
     "dotenv": "^17.2.1",
+    "graphql": "^16.8.1",
     "next": "15.5.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-window": "^2.0.2",
     "recharts": "^3.1.2",
+    "twilio": "^4.19.0",
+    "zod": "^3.22.4",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

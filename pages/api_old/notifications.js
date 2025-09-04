@@ -1,0 +1,45 @@
+// API endpoint for custom notifications (demo)
+import { sendEmail } from '../../lib/sendgrid';
+import { sendSMS } from '../../lib/twilio';
+import { secrets } from '../../lib/secrets';
+import { withSentry } from '@sentry/nextjs'
+
+let notifications = [];
+
+async function handler(req, res) {
+  try {
+    if (req.method === 'POST') {
+      const { userId, message, type, email } = req.body;
+      if (!userId || !message || !type) {
+        return res.status(400).json({ error: 'Missing fields', code: 400 });
+      }
+      notifications.push({ userId, message, type, ts: Date.now() });
+      // Send email if type is 'email' and email is provided
+      if (type === 'email' && email) {
+        try {
+          await sendEmail({ to: email, subject: 'Notification', text: message });
+        } catch (err) {
+          return res.status(500).json({ error: 'Email send failed', details: err.message, code: 500 });
+        }
+      }
+      // Send SMS if type is 'sms' and phone is provided
+      if (type === 'sms' && req.body.phone) {
+        try {
+          await sendSMS({ to: req.body.phone, body: message });
+        } catch (err) {
+          return res.status(500).json({ error: 'SMS send failed', details: err.message, code: 500 });
+        }
+      }
+      return res.status(200).json({ success: true });
+    }
+    if (req.method === 'GET') {
+      return res.status(200).json(notifications);
+    }
+    return res.status(405).json({ error: 'Method Not Allowed', code: 405 });
+  } catch (err) {
+    console.error('Notifications API Error:', err);
+    return res.status(500).json({ error: 'Internal Server Error', code: 500 });
+  }
+}
+
+export default withSentry(handler);
