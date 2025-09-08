@@ -1,7 +1,10 @@
-import { supabase } from '../../../../lib/supabase';
 import { NextResponse } from 'next/server';
+import { getSupabase } from '../../../../lib/supabase';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
+  const supabase = getSupabase();
   const { searchParams } = new URL(request.url);
   const record_id = searchParams.get('record_id');
   if (!record_id) return NextResponse.json({ error: 'record_id required' }, { status: 400 });
@@ -15,6 +18,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const supabase = getSupabase();
   const body = await request.json();
   const { record_id, body: commentBody, user_id = null } = body || {};
   if (!record_id || !commentBody) return NextResponse.json({ error: 'record_id and body required' }, { status: 400 });
