@@ -33,4 +33,3 @@ export function ViewControls({ views, activeView, setViews, setActiveView, filte
     </div>
   );
 }
-export default ViewControls;

@@ -10,4 +10,3 @@ export function GridPagination({ page, pageSize, total, onPageChange }: any) {
     </div>
   );
 }
-export default GridPagination;

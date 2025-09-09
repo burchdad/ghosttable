@@ -8,4 +8,3 @@ export function GridEmptyState({ message = 'No records found.' }: { message?: st
     </div>
   );
 }
-export default GridEmptyState;

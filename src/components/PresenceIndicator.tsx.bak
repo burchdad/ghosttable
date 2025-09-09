@@ -27,4 +27,3 @@ export function PresenceIndicator({ onlineUsers, userId }: any) {
     </>
   );
 }
-export default PresenceIndicator;

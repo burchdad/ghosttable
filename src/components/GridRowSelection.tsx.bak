@@ -25,4 +25,3 @@ export function GridRowSelection({ selectedIds, onSelect, rows, isAllSelected, o
     </div>
   );
 }
-export default GridRowSelection;

@@ -5,4 +5,3 @@ export const GridContext = createContext<any>(null);
 export function useGridContext() {
   return useContext(GridContext);
 }
-export default GridContext;

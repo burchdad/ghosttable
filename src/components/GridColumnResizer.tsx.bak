@@ -6,4 +6,3 @@ export function GridColumnResizer({ onResize }: any) {
     <span className="inline-block w-2 h-full cursor-col-resize bg-gray-200" onMouseDown={onResize} />
   );
 }
-export default GridColumnResizer;

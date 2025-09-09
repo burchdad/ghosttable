@@ -19,4 +19,3 @@ export function GridFilterPanel({ filterField, setFilterField, filterOp, setFilt
     </div>
   );
 }
-export default GridFilterPanel;

@@ -7,4 +7,3 @@ export function UndoRedo({ onUndo, onRedo }: { onUndo: () => void; onRedo: () =>
     </div>
   );
 }
-export default UndoRedo;

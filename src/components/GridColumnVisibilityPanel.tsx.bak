@@ -19,4 +19,3 @@ export function GridColumnVisibilityPanel({ fields, visibleFieldIds, setVisibleF
     </div>
   );
 }
-export default GridColumnVisibilityPanel;

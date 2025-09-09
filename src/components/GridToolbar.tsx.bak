@@ -45,4 +45,3 @@ export function GridToolbar({
     </div>
   );
 }
-export default GridToolbar;

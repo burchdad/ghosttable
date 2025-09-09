@@ -20,4 +20,3 @@ export function GridSummary({ displayNumericFields, visibleFieldIds, items }: an
     </tfoot>
   );
 }
-export default GridSummary;

@@ -12,4 +12,3 @@ export function GridGroupHeader({ groupKey, groupRecords, onToggle, expanded }: 
     </tr>
   );
 }
-export default GridGroupHeader;

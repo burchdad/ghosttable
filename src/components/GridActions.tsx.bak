@@ -9,4 +9,3 @@ export function GridActions({ record, onEdit, onDelete, onDuplicate }: any) {
     </div>
   );
 }
-export default GridActions;

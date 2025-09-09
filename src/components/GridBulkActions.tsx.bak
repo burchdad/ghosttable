@@ -16,4 +16,3 @@ export function GridBulkActions({ selectedIds, onDeleteSelected, onDuplicateSele
     </div>
   );
 }
-export default GridBulkActions;
